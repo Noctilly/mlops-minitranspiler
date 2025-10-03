@@ -6,7 +6,7 @@ import c_functions
 df = pd.read_csv("houses.csv")
 
 
-model: LogisticRegression = joblib.load("regression.joblib")
+model: LogisticRegression = joblib.load("logistic.joblib")
 
 print(model.coef_)
 print(model.classes_)
@@ -49,6 +49,8 @@ def logistic_model_to_c(model: LogisticRegression):
     {c_functions.exp_aprox()}
           
     {c_functions.sigmoid()}
+
+    {c_functions.linear_regression()}
           
     {c_functions.logistic_regression()}
     

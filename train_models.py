@@ -11,7 +11,7 @@ def build_linear_model():
     y = df["price"]
     model = LinearRegression()
     model.fit(X, y)
-    joblib.dump(model, "regression.joblib")
+    joblib.dump(model, "linear.joblib")
 
 
 def build_logistic_model():
@@ -19,7 +19,7 @@ def build_logistic_model():
     y = np.where(df["price"] < 0, -1, np.where(df["price"] < 270000, 0, 1))
     model = LogisticRegression()
     model.fit(X, y)
-    joblib.dump(model, "regression.joblib")
+    joblib.dump(model, "logistic.joblib")
 
 
 build_logistic_model()

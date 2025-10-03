@@ -63,7 +63,10 @@ def list_to_c(python_list: list):
         if isinstance(python_list[i], list):
             c_list += list_to_c(python_list[i])
         else:
-            c_list += python_list[i]
+            if isinstance(python_list[i], str):
+                c_list += f'"{python_list[i]}"'
+            else:
+                c_list += str(python_list[i])
         if i < len(python_list) - 1:
             c_list += ","
     return c_list + "}"
@@ -80,11 +83,11 @@ float logistic_regression_prediction(double* features, double* thetas, int n_par
 def multiclasses_logistic_regression(model: LogisticRegression, features: list):
     return f"""
     void main(){{
-        double thetas[{model.coef_.shape[0]}][{model.coef_.shape[1] + 1}] = {list_to_c([[str(bias), *map(str, coefs)] for bias, coefs in zip(model.intercept_, model.coef_)])};
+        double thetas[{model.coef_.shape[0]}][{model.coef_.shape[1] + 1}] = {list_to_c([[bias, *coefs] for bias, coefs in zip(model.intercept_, model.coef_)])};
         int n_parameters = {len(model.coef_[0]) + 1};
         char* classes[{len(model.classes_)}] = {list_to_c(list(map(str, model.classes_)))};
 
-        double features[{len(features)}] = {{ {", ".join(features)} }};
+        double features[{len(features)}] = {{ {", ".join(map(str, features))} }};
 
         int max_i = 0;
         double max = -1;
@@ -107,7 +110,7 @@ def multiclasses_logistic_regression(model: LogisticRegression, features: list):
 def binary_logistic_regression(model: LogisticRegression, features: list):
     return f"""
     void main(){{
-        double thetas[{model.coef_.shape[1] + 1}] = {{ {", ".join([str(model.intercept_)] + [str(coef) for coef in model.coef_])} }};
+        double thetas[{model.coef_.shape[1] + 1}] = {{ {model.intercept_ + model.coef_[0]} }};
         int n_parameters = {len(model.coef_.shape[1]) + 1};
         char* classes[{len(model.classes_)}] = {list_to_c(list(map(str, model.classes_)))};
 
