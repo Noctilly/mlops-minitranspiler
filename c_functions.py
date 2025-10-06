@@ -1,4 +1,6 @@
 from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+import numpy as np
 
 
 def linear_regression():
@@ -65,7 +67,7 @@ double sigmoid(double x){
 def list_to_c(python_list: list):
     c_list = "{"
     for i in range(len(python_list)):
-        if isinstance(python_list[i], list):
+        if isinstance(python_list[i], list) or isinstance(python_list[i], np.ndarray):
             c_list += list_to_c(python_list[i])
         else:
             if isinstance(python_list[i], str):
@@ -81,6 +83,35 @@ def logistic_regression():
     return """
 double logistic_regression_prediction(double* features, double* thetas, int n_parameters){
     return sigmoid(linear_regression_prediction(features, thetas, n_parameters));
+}
+"""
+
+
+def decision_tree_classifier():
+    return """
+int decision_tree_classifier(int n_features, int n_classes, double *input, int *features, double *treshold, int *children_left, int *children_right, double (*values)[n_classes])
+{
+    int node = 0;
+    while (features[node] != -2)
+    {
+        int feat = features[node];
+        double tresh = treshold[node];
+        if (input[feat] <= tresh)
+            node = children_left[node];
+        else
+            node = children_right[node];
+    }
+    int max_i = 0;
+    double max = -1;
+    for (int i = 0; i < n_classes; i++)
+    {
+        if (values[node][i] > max)
+        {
+            max = values[node][i];
+            max_i = i;
+        }
+    }
+    return max_i;
 }
 """
 
@@ -115,7 +146,7 @@ void main(){{
 def binary_logistic_regression_main(model: LogisticRegression, features: list):
     return f"""
 void main(){{
-    double thetas[{model.coef_.shape[1] + 1}] = {list_to_c(model.intercept_ + model.coef_[0])};
+    double thetas[{model.coef_.shape[1] + 1}] = {list_to_c([*model.intercept_, *model.coef_[0]])};
     int n_parameters = {model.coef_.shape[1] + 1};
     char* classes[{len(model.classes_)}] = {list_to_c(list(map(str, model.classes_)))};
 
@@ -131,7 +162,7 @@ void main(){{
 
 
 def linear_regression_main(model: LinearRegression, features: list):
-    return f"""    
+    return f"""
 void main(){{
     double thetas[{len(model.coef_) + 1}] = {{ {", ".join([str(model.intercept_)] + [str(coef) for coef in model.coef_])} }};
     int n_parameters = {len(model.coef_) + 1};
@@ -140,3 +171,26 @@ void main(){{
 
     printf("Prediction: %f\\n", linear_regression_prediction(features, thetas, n_parameters));
     }}"""
+
+
+def decision_treee_classifier_main(model: DecisionTreeClassifier, input: list):
+    return f"""
+void main()
+{{
+    int n_features = {model.tree_.feature.shape[0]};
+
+    int features[{model.tree_.feature.shape[0]}] = {list_to_c(model.tree_.feature)};
+    double threshold[{model.tree_.feature.shape[0]}] = {list_to_c(model.tree_.threshold)};
+    int children_left[{model.tree_.feature.shape[0]}] = {list_to_c(model.tree_.children_left)};
+    int children_right[{model.tree_.feature.shape[0]}] = {list_to_c(model.tree_.children_right)};
+    double values[{model.tree_.feature.shape[0]}][{model.tree_.n_classes[0]}] = {list_to_c(np.squeeze(model.tree_.value))};
+
+    int n_classes = {model.tree_.n_classes[0]};
+    char *classes[{model.tree_.n_classes[0]}] = {list_to_c(list(map(str, model.classes_)))};
+
+    double input[{len(input)}] = {{ {", ".join(map(str, input))} }};
+
+    int pred = decision_tree_classifier(n_features, n_classes, input, features, threshold, children_left, children_right, values);
+
+    printf("Predicted class: %s\\n", classes[pred]);
+}}"""

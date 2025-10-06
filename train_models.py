@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
 import joblib
 
 df = pd.read_csv("houses.csv")
@@ -22,4 +23,13 @@ def build_logistic_model():
     joblib.dump(model, "logistic.joblib")
 
 
-build_logistic_model()
+def build_decision_tree_model():
+    X = df[["size", "nb_rooms", "garden"]]
+    y = df["price"] < 270000
+    # y = np.where(df["price"] < 0, -1, np.where(df["price"] < 270000, 0, 1))
+    model = DecisionTreeClassifier()
+    model.fit(X, y)
+    joblib.dump(model, "tree.joblib")
+
+
+build_decision_tree_model()
