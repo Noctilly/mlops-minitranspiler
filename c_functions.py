@@ -20,10 +20,10 @@ def list_to_c(python_list: list):
 
 def linear_regression():
     return """          
-double linear_regression_prediction(double* features, double* thetas, int n_parameters){
+double linear_regression_prediction(double* input, double* thetas, int n_parameters){
     double res = thetas[0];
     for (int i = 0; i < n_parameters - 1; i++){
-        res += features[i] * thetas[i+1];
+        res += input[i] * thetas[i+1];
     }
     return res;
 }"""
@@ -81,8 +81,8 @@ double sigmoid(double x){
 
 def logistic_regression():
     return """
-double logistic_regression_prediction(double* features, double* thetas, int n_parameters){
-    return sigmoid(linear_regression_prediction(features, thetas, n_parameters));
+double logistic_regression_prediction(double* input, double* thetas, int n_parameters){
+    return sigmoid(linear_regression_prediction(input, thetas, n_parameters));
 }
 """
 

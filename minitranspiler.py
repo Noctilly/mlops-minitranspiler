@@ -90,10 +90,8 @@ def decision_tree_model_to_c(
 def transpile(model, input=input):
     if isinstance(model, LogisticRegression):
         logistic_model_to_c(model=model, input=input)
-        pass
     elif isinstance(model, LinearRegression):
         linear_model_to_c(model=model, input=input)
-        pass
     elif isinstance(model, DecisionTreeClassifier):
         decision_tree_model_to_c(model=model, input=input)
     else:
