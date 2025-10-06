@@ -1,17 +1,14 @@
 import pandas as pd
+from pathlib import Path
 from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
-import joblib
-import c_functions
+from . import c_functions
 
-VERBOSE = True
-
-if VERBOSE:
-    df = pd.read_csv("houses.csv")
+df = pd.read_csv(Path(__file__).parent / "../houses.csv")
 
 
-def linear_model_to_c(model: LinearRegression, input, output="linear_model.c"):
-    if VERBOSE:
+def linear_model_to_c(model: LinearRegression, input, verbose, output="linear_model.c"):
+    if verbose:
         input_df = pd.DataFrame([input], columns=model.feature_names_in_)
         print("=========== Linear Model ===========")
         print(f"Data = {input}")
@@ -29,8 +26,10 @@ def linear_model_to_c(model: LinearRegression, input, output="linear_model.c"):
         text_file.write(c_code)
 
 
-def logistic_model_to_c(model: LogisticRegression, input, output="logistic_model.c"):
-    if VERBOSE:
+def logistic_model_to_c(
+    model: LogisticRegression, input, verbose, output="logistic_model.c"
+):
+    if verbose:
         input_df = pd.DataFrame([input], columns=model.feature_names_in_)
         print("=========== Logistic Model ===========")
         print(f"Data = {input}")
@@ -66,9 +65,9 @@ def logistic_model_to_c(model: LogisticRegression, input, output="logistic_model
 
 
 def decision_tree_model_to_c(
-    model: DecisionTreeClassifier, input, output="decision_tree_model.c"
+    model: DecisionTreeClassifier, input, verbose, output="decision_tree_model.c"
 ):
-    if VERBOSE:
+    if verbose:
         input_df = pd.DataFrame([input], columns=model.feature_names_in_)
         print("=========== Decision Tree Model ===========")
         print(f"Data = {input}")
@@ -87,18 +86,16 @@ def decision_tree_model_to_c(
         text_file.write(c_code)
 
 
-def transpile(model, input=input):
+def transpile(model, input, verbose=False, output=None):
+    extra_args = {"output": output} if output is not None else {}
+
     if isinstance(model, LogisticRegression):
-        logistic_model_to_c(model=model, input=input)
+        logistic_model_to_c(model=model, input=input, verbose=verbose, **extra_args)
     elif isinstance(model, LinearRegression):
-        linear_model_to_c(model=model, input=input)
+        linear_model_to_c(model=model, input=input, verbose=verbose, **extra_args)
     elif isinstance(model, DecisionTreeClassifier):
-        decision_tree_model_to_c(model=model, input=input)
+        decision_tree_model_to_c(
+            model=model, input=input, verbose=verbose, **extra_args
+        )
     else:
         raise RuntimeError(f"Model of type {type(model)} is unknown.")
-
-
-input = [205.9991686803, 2, 0]
-transpile(model=joblib.load("linear.joblib"), input=input)
-transpile(model=joblib.load("logistic.joblib"), input=input)
-transpile(model=joblib.load("tree.joblib"), input=input)
