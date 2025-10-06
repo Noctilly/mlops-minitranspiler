@@ -32,4 +32,6 @@ def build_decision_tree_model():
     joblib.dump(model, "tree.joblib")
 
 
+build_linear_model()
+build_logistic_model()
 build_decision_tree_model()
