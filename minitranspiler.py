@@ -15,28 +15,23 @@ print(model.predict_proba(df[["size", "nb_rooms", "garden"]].iloc[[0]]))
 
 
 def linear_model_to_c(model: LinearRegression):
+    features = [205.9991686803, 2, 0]
     return f"""
     #include <stdio.h>
           
     {c_functions.linear_regression()}
     
-    void main(){{
-        double thetas[{len(model.coef_) + 1}] = {{ {", ".join([str(model.intercept_)] + [str(coef) for coef in model.coef_])} }};
-        int n_parameters = {len(model.coef_) + 1};
-
-        double features[3] = {{ 205.9991686803, 2, 0 }};
-
-        printf("Prediction: %f", linear_regression_prediction(features, thetas, n_parameters));
-    }}"""
+    {c_functions.linear_regression_main(model=model, features=features)}    
+    """
 
 
 def logistic_model_to_c(model: LogisticRegression):
     features = [205.9991686803, 2, 0]
 
     main_func = (
-        c_functions.multiclasses_logistic_regression
+        c_functions.multiclasses_logistic_regression_main
         if len(model.classes_) > 2
-        else c_functions.binary_logistic_regression
+        else c_functions.binary_logistic_regression_main
     )
 
     return f"""
